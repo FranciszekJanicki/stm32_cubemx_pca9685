@@ -66,8 +66,9 @@ pca9685_err_t pca9685_get_all_pwm_off_reg(pca9685_t const* pca9685, pca9685_all_
 pca9685_err_t pca9685_set_all_pwm_off_reg(pca9685_t const* pca9685,
                                           pca9685_all_pwm_off_reg_t const* reg);
 
-pca9685_err_t pca9685_get_prescale_reg(pca9685_t const* pca9685, pca9685_prescale_reg_t* reg);
-pca9685_err_t pca9685_set_prescale_reg(pca9685_t const* pca9685, pca9685_prescale_reg_t const* reg);
+pca9685_err_t pca9685_get_pre_scale_reg(pca9685_t const* pca9685, pca9685_pre_scale_reg_t* reg);
+pca9685_err_t pca9685_set_pre_scale_reg(pca9685_t const* pca9685,
+                                        pca9685_pre_scale_reg_t const* reg);
 
 pca9685_err_t pca9685_get_test_mode_reg(pca9685_t const* pca9685, pca9685_test_mode_reg_t* reg);
 pca9685_err_t pca9685_set_test_mode_reg(pca9685_t const* pca9685,

@@ -408,7 +408,7 @@ pca9685_err_t pca9685_set_pwm_on_reg(pca9685_t const* pca9685,
 
     data[0] |= reg->pwm_on & 0xFFU;
     data[1] |= (reg->pwm_on >> 8U) & 0x0FU;
-    data[1] |= (reg->pwm_on & 0x01U) << 4U;
+    data[1] |= (reg->pwm_full_on & 0x01U) << 4U;
 
     err |= pca9685_bus_write(pca9685,
                              pca9685_channel_to_pwm_on_reg_address(channel),
@@ -423,6 +423,18 @@ pca9685_err_t pca9685_get_pwm_off_reg(pca9685_t const* pca9685,
                                       pca9685_pwm_off_reg_t* reg)
 {
     assert(pca9685 && reg);
+
+    uint8_t data[2] = {};
+
+    pca9685_err_t err = pca9685_bus_read(pca9685,
+                                         pca9865_channel_to_pwm_off_reg_address(channel),
+                                         data,
+                                         sizeof(data));
+
+    reg->pwm_off = (data[0] & 0xFFU) | ((data[1] & 0x0FU) << 8U);
+    reg->pwm_full_off = (data[1] >> 4U) & 0x01U;
+
+    return err;
 }
 
 pca9685_err_t pca9685_set_pwm_off_reg(pca9685_t const* pca9685,
@@ -430,47 +442,149 @@ pca9685_err_t pca9685_set_pwm_off_reg(pca9685_t const* pca9685,
                                       pca9685_pwm_off_reg_t const* reg)
 {
     assert(pca9685 && reg);
+
+    uint8_t data[2] = {};
+
+    pca9685_err_t err = pca9685_bus_read(pca9685,
+                                         pca9865_channel_to_pwm_off_reg_address(channel),
+                                         data,
+                                         sizeof(data));
+
+    data[0] &= ~0xFFU;
+    data[1] &= ~(0x0FU | (0x01U << 4U));
+
+    data[0] |= reg->pwm_off & 0xFFU;
+    data[1] |= (reg->pwm_off >> 8U) & 0x0FU;
+    data[1] |= (reg->pwm_full_off & 0x01U) << 4U;
+
+    err |= pca9685_bus_write(pca9685,
+                             pca9865_channel_to_pwm_off_reg_address(channel),
+                             data,
+                             sizeof(data));
+
+    return err;
 }
 
 pca9685_err_t pca9685_get_all_pwm_on_reg(pca9685_t const* pca9685, pca9685_all_pwm_on_reg_t* reg)
 {
     assert(pca9685 && reg);
+
+    uint8_t data[2] = {};
+
+    pca9685_err_t err =
+        pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_ALL_PWM_ON_L, data, sizeof(data));
+
+    reg->all_pwm_on = (data[0] & 0xFFU) | ((data[1] & 0x0FU) << 8U);
+
+    return err;
 }
 
 pca9685_err_t pca9685_set_all_pwm_on_reg(pca9685_t const* pca9685,
                                          pca9685_all_pwm_on_reg_t const* reg)
 {
     assert(pca9685 && reg);
+
+    uint8_t data[2] = {};
+
+    pca9685_err_t err =
+        pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_ALL_PWM_ON_L, data, sizeof(data));
+
+    data[0] &= ~0xFFU;
+    data[1] &= ~(0x0FU | (0x01U << 4U));
+
+    data[0] |= (reg->all_pwm_on & 0xFFU);
+    data[1] |= (reg->all_pwm_on >> 8U) & 0x0FU;
+    data[1] |= (reg->all_pwm_full_on & 0x01U) << 4U;
+
+    err |= pca9685_bus_write(pca9685, PCA9685_REG_ADDRESS_ALL_PWM_ON_L, data, sizeof(data));
+
+    return err;
 }
 
 pca9685_err_t pca9685_get_all_pwm_off_reg(pca9685_t const* pca9685, pca9685_all_pwm_off_reg_t* reg)
 {
     assert(pca9685 && reg);
+
+    uint8_t data[2] = {};
+
+    pca9685_err_t err =
+        pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_ALL_PWM_OFF_L, data, sizeof(data));
+
+    reg->all_pwm_off = (data[0] & 0xFFU) | ((data[1] & 0x0FU) << 8U);
+    reg->all_pwm_full_off = (data[1] >> 4U) & 0x01U;
+
+    return err;
 }
 
 pca9685_err_t pca9685_set_all_pwm_off_reg(pca9685_t const* pca9685,
                                           pca9685_all_pwm_off_reg_t const* reg)
 {
     assert(pca9685 && reg);
+    uint8_t data[2] = {};
+
+    pca9685_err_t err =
+        pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_ALL_PWM_OFF_L, data, sizeof(data));
+
+    data[0] &= ~0xFFU;
+    data[1] &= ~(0x0FU | (0x01U << 1U));
+
+    data[0] |= (reg->all_pwm_off & 0xFFU);
+    data[1] |= (reg->all_pwm_off >> 8U) & 0x0FU;
+    data[1] |= (reg->all_pwm_full_off & 0x01U) << 4U;
+
+    err |= pca9685_bus_write(pca9685, PCA9685_REG_ADDRESS_ALL_PWM_OFF_L, data, sizeof(data));
+
+    return err;
 }
 
-pca9685_err_t pca9685_get_prescale_reg(pca9685_t const* pca9685, pca9685_prescale_reg_t* reg)
+pca9685_err_t pca9685_get_pre_scale_reg(pca9685_t const* pca9685, pca9685_pre_scale_reg_t* reg)
 {
     assert(pca9685 && reg);
+
+    uint8_t data[1] = {};
+
+    pca9685_err_t err =
+        pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_PRE_SCALE, data, sizeof(data));
+
+    reg->pre_scale = data[0] & 0xFFU;
+
+    return err;
 }
 
-pca9685_err_t pca9685_set_prescale_reg(pca9685_t const* pca9685, pca9685_prescale_reg_t const* reg)
+pca9685_err_t pca9685_set_pre_scale_reg(pca9685_t const* pca9685,
+                                        pca9685_pre_scale_reg_t const* reg)
 {
     assert(pca9685 && reg);
+
+    uint8_t data[1] = {};
+
+    data[0] = reg->pre_scale & 0xFFU;
+
+    return pca9685_bus_write(pca9685, PCA9685_REG_ADDRESS_PRE_SCALE, data, sizeof(data));
 }
 
 pca9685_err_t pca9685_get_test_mode_reg(pca9685_t const* pca9685, pca9685_test_mode_reg_t* reg)
 {
     assert(pca9685 && reg);
+
+    uint8_t data[1] = {};
+
+    pca9685_err_t err =
+        pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_TEST_MODE, data, sizeof(data));
+
+    reg->mode = data[0] & 0xFFU;
+
+    return err;
 }
 
 pca9685_err_t pca9685_set_test_mode_reg(pca9685_t const* pca9685,
                                         pca9685_test_mode_reg_t const* reg)
 {
     assert(pca9685 && reg);
+
+    uint8_t data[1] = {};
+
+    data[0] = reg->mode & 0xFFU;
+
+    return pca9685_bus_write(pca9685, PCA9685_REG_ADDRESS_TEST_MODE, data, sizeof(data));
 }

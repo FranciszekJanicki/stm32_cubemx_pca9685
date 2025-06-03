@@ -44,8 +44,8 @@ typedef struct {
 } PACKED pca9685_all_pwm_off_reg_t;
 
 typedef struct {
-    uint8_t prescale : 8;
-} PACKED pca9685_prescale_reg_t;
+    uint8_t pre_scale : 8;
+} PACKED pca9685_pre_scale_reg_t;
 
 typedef struct {
     uint8_t a1 : 7;
