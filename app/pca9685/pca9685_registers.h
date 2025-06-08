@@ -3,8 +3,6 @@
 
 #include <stdint.h>
 
-#define PACKED __attribute__((packed))
-
 typedef struct {
     uint8_t restart : 1;
     uint8_t extclk : 1;
@@ -14,59 +12,57 @@ typedef struct {
     uint8_t sub2 : 1;
     uint8_t sub3 : 1;
     uint8_t allcall : 1;
-} PACKED pca9685_mode1_reg_t;
+} pca9685_mode1_reg_t;
 
 typedef struct {
     uint8_t invrt : 1;
     uint8_t och : 1;
     uint8_t outdrv : 1;
     uint8_t outne : 2;
-} PACKED pca9685_mode2_reg_t;
+} pca9685_mode2_reg_t;
 
 typedef struct {
     uint16_t pwm_on : 12;
     uint8_t pwm_full_on : 1;
-} PACKED pca9685_pwm_on_reg_t;
+} pca9685_pwm_on_reg_t;
 
 typedef struct {
     uint16_t pwm_off : 12;
     uint8_t pwm_full_off : 1;
-} PACKED pca9685_pwm_off_reg_t;
+} pca9685_pwm_off_reg_t;
 
 typedef struct {
     uint16_t all_pwm_on : 12;
     uint8_t all_pwm_full_on : 1;
-} PACKED pca9685_all_pwm_on_reg_t;
+} pca9685_all_pwm_on_reg_t;
 
 typedef struct {
     uint16_t all_pwm_off : 12;
     uint8_t all_pwm_full_off : 1;
-} PACKED pca9685_all_pwm_off_reg_t;
+} pca9685_all_pwm_off_reg_t;
 
 typedef struct {
     uint8_t pre_scale : 8;
-} PACKED pca9685_pre_scale_reg_t;
+} pca9685_pre_scale_reg_t;
 
 typedef struct {
     uint8_t a1 : 7;
-} PACKED pca9685_subadr1_reg_t;
+} pca9685_subadr1_reg_t;
 
 typedef struct {
     uint8_t a2 : 7;
-} PACKED pca9685_subadr2_reg_t;
+} pca9685_subadr2_reg_t;
 
 typedef struct {
     uint8_t a3 : 7;
-} PACKED pca9685_subadr3_reg_t;
+} pca9685_subadr3_reg_t;
 
 typedef struct {
     uint8_t ac : 7;
-} PACKED pca9685_allcalladr_reg_t;
+} pca9685_allcalladr_reg_t;
 
 typedef struct {
     uint8_t mode : 8;
-} PACKED pca9685_test_mode_reg_t;
-
-#undef PACKED
+} pca9685_test_mode_reg_t;
 
 #endif // PCA9685_PCA9685_REGISTERS_H

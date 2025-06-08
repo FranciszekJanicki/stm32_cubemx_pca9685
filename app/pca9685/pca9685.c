@@ -6,58 +6,35 @@
 
 static pca9685_err_t pca9685_bus_init(pca9685_t const* pca9685)
 {
-    assert(pca9685);
-
-    if (pca9685->interface.bus_init) {
-        return pca9685->interface.bus_init(pca9685->interface.bus_user);
-    }
-
-    return PCA9685_ERR_NULL;
+    return pca9685->interface.bus_init ? pca9685->interface.bus_init(pca9685->interface.bus_user)
+                                       : PCA9685_ERR_NULL;
 }
 
 static pca9685_err_t pca9685_bus_deinit(pca9685_t const* pca9685)
 {
-    assert(pca9685);
-
-    if (pca9685->interface.bus_deinit) {
-        return pca9685->interface.bus_deinit(pca9685->interface.bus_user);
-    }
-
-    return PCA9685_ERR_NULL;
+    return pca9685->interface.bus_deinit
+               ? pca9685->interface.bus_deinit(pca9685->interface.bus_user)
+               : PCA9685_ERR_NULL;
 }
 
 static pca9685_err_t pca9685_bus_write(pca9685_t const* pca9685,
-                                       uint8_t write_address,
-                                       uint8_t const* write_data,
-                                       size_t write_size)
+                                       uint8_t address,
+                                       uint8_t const* data,
+                                       size_t data_size)
 {
-    assert(pca9685);
-
-    if (pca9685->interface.bus_write) {
-        return pca9685->interface.bus_write(pca9685->interface.bus_user,
-                                            write_address,
-                                            write_data,
-                                            write_size);
-    }
-
-    return PCA9685_ERR_NULL;
+    return pca9685->interface.bus_write
+               ? pca9685->interface.bus_write(pca9685->interface.bus_user, address, data, data_size)
+               : PCA9685_ERR_NULL;
 }
 
 static pca9685_err_t pca9685_bus_read(pca9685_t const* pca9685,
-                                      uint8_t read_address,
-                                      uint8_t* read_data,
-                                      size_t read_size)
+                                      uint8_t address,
+                                      uint8_t* data,
+                                      size_t data_size)
 {
-    assert(pca9685);
-
-    if (pca9685->interface.bus_read) {
-        return pca9685->interface.bus_read(pca9685->interface.bus_user,
-                                           read_address,
-                                           read_data,
-                                           read_size);
-    }
-
-    return PCA9685_ERR_NULL;
+    return pca9685->interface.bus_read
+               ? pca9685->interface.bus_read(pca9685->interface.bus_user, address, data, data_size)
+               : PCA9685_ERR_NULL;
 }
 
 pca9685_err_t pca9685_initialize(pca9685_t* pca9685,
@@ -91,8 +68,9 @@ pca9685_err_t pca9685_send_software_reset_cmd(pca9685_t const* pca9685)
     return pca9685_bus_write(pca9685, PCA9685_COMMAND_SOFTWARE_RESET, NULL, 0UL);
 }
 
-pca9685_err_t
-pca9685_set_channel_compare(pca9685_t const* pca9685, pca9685_channel_t channel, uint16_t compare)
+pca9685_err_t pca9685_set_channel_compare(pca9685_t const* pca9685,
+                                          pca9685_channel_t channel,
+                                          uint16_t compare)
 {
     assert(pca9685);
 
@@ -178,18 +156,18 @@ pca9685_err_t pca9685_get_mode1_reg(pca9685_t const* pca9685, pca9685_mode1_reg_
 {
     assert(pca9685 && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
-    pca9685_err_t err = pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_MODE1, data, sizeof(data));
+    pca9685_err_t err = pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_MODE1, &data, sizeof(data));
 
-    reg->restart = (data[0] >> 7U) & 0x01U;
-    reg->extclk = (data[0] >> 6U) & 0x01U;
-    reg->ai = (data[0] >> 5U) & 0x01U;
-    reg->sleep = (data[0] >> 4U) & 0x01U;
-    reg->sub1 = (data[0] >> 3U) & 0x01U;
-    reg->sub2 = (data[0] >> 2U) & 0x01U;
-    reg->sub3 = (data[0] >> 1U) & 0x01U;
-    reg->allcall = data[0] & 0x01U;
+    reg->restart = (data >> 7U) & 0x01U;
+    reg->extclk = (data >> 6U) & 0x01U;
+    reg->ai = (data >> 5U) & 0x01U;
+    reg->sleep = (data >> 4U) & 0x01U;
+    reg->sub1 = (data >> 3U) & 0x01U;
+    reg->sub2 = (data >> 2U) & 0x01U;
+    reg->sub3 = (data >> 1U) & 0x01U;
+    reg->allcall = data & 0x01U;
 
     return err;
 }
@@ -198,32 +176,32 @@ pca9685_err_t pca9685_set_mode1_reg(pca9685_t const* pca9685, pca9685_mode1_reg_
 {
     assert(pca9685 && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
-    data[0] |= (reg->restart & 0x01U) << 7U;
-    data[0] |= (reg->extclk & 0x01U) << 6U;
-    data[0] |= (reg->ai & 0x01U) << 5U;
-    data[0] |= (reg->sleep & 0x01U) << 4U;
-    data[0] |= (reg->sub1 & 0x01U) << 3U;
-    data[0] |= (reg->sub2 & 0x01U) << 2U;
-    data[0] |= (reg->sub3 & 0x01U) << 1U;
-    data[0] |= reg->allcall & 0x01U;
+    data |= (reg->restart & 0x01U) << 7U;
+    data |= (reg->extclk & 0x01U) << 6U;
+    data |= (reg->ai & 0x01U) << 5U;
+    data |= (reg->sleep & 0x01U) << 4U;
+    data |= (reg->sub1 & 0x01U) << 3U;
+    data |= (reg->sub2 & 0x01U) << 2U;
+    data |= (reg->sub3 & 0x01U) << 1U;
+    data |= reg->allcall & 0x01U;
 
-    return pca9685_bus_write(pca9685, PCA9685_REG_ADDRESS_MODE1, data, sizeof(data));
+    return pca9685_bus_write(pca9685, PCA9685_REG_ADDRESS_MODE1, &data, sizeof(data));
 }
 
 pca9685_err_t pca9685_get_mode2_reg(pca9685_t const* pca9685, pca9685_mode2_reg_t* reg)
 {
     assert(pca9685 && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
-    pca9685_err_t err = pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_MODE2, data, sizeof(data));
+    pca9685_err_t err = pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_MODE2, &data, sizeof(data));
 
-    reg->invrt = (data[0] >> 4U) & 0x01U;
-    reg->och = (data[0] >> 3U) & 0x01U;
-    reg->outdrv = (data[0] >> 2U) & 0x01U;
-    reg->outne = data[0] & 0x03U;
+    reg->invrt = (data >> 4U) & 0x01U;
+    reg->och = (data >> 3U) & 0x01U;
+    reg->outdrv = (data >> 2U) & 0x01U;
+    reg->outne = data & 0x03U;
 
     return err;
 }
@@ -232,18 +210,18 @@ pca9685_err_t pca9685_set_mode2_reg(pca9685_t const* pca9685, pca9685_mode2_reg_
 {
     assert(pca9685 && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
-    pca9685_err_t err = pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_MODE2, data, sizeof(data));
+    pca9685_err_t err = pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_MODE2, &data, sizeof(data));
 
-    data[0] &= ~((0x01U << 4U) | (0x01 << 3U) | (0x01 << 2U) | 0x03U);
+    data &= ~((0x01U << 4U) | (0x01 << 3U) | (0x01 << 2U) | 0x03U);
 
-    data[0] |= (reg->invrt & 0x01U) << 4U;
-    data[0] |= (reg->och & 0x01U) << 3U;
-    data[0] |= (reg->outdrv & 0x01U) << 2U;
-    data[0] |= reg->outne & 0x03U;
+    data |= (reg->invrt & 0x01U) << 4U;
+    data |= (reg->och & 0x01U) << 3U;
+    data |= (reg->outdrv & 0x01U) << 2U;
+    data |= reg->outne & 0x03U;
 
-    err |= pca9685_bus_write(pca9685, PCA9685_REG_ADDRESS_MODE2, data, sizeof(data));
+    err |= pca9685_bus_write(pca9685, PCA9685_REG_ADDRESS_MODE2, &data, sizeof(data));
 
     return err;
 }
@@ -252,11 +230,11 @@ pca9685_err_t pca9685_get_subadr1_reg(pca9685_t const* pca9685, pca9685_subadr1_
 {
     assert(pca9685 && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
-    pca9685_err_t err = pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_SUBADR1, data, sizeof(data));
+    pca9685_err_t err = pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_SUBADR1, &data, sizeof(data));
 
-    reg->a1 = (data[0] >> 1U) & 0x0EFU;
+    reg->a1 = (data >> 1U) & 0x0EFU;
 
     return err;
 }
@@ -265,15 +243,15 @@ pca9685_err_t pca9685_set_subadr1_reg(pca9685_t const* pca9685, pca9685_subadr1_
 {
     assert(pca9685 && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
-    pca9685_err_t err = pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_SUBADR1, data, sizeof(data));
+    pca9685_err_t err = pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_SUBADR1, &data, sizeof(data));
 
-    data[0] &= ~(0xEFU << 1U);
+    data &= ~(0xEFU << 1U);
 
-    data[0] |= (reg->a1 & 0x0EFU) << 1U;
+    data |= (reg->a1 & 0x0EFU) << 1U;
 
-    err |= pca9685_bus_write(pca9685, PCA9685_REG_ADDRESS_SUBADR1, data, sizeof(data));
+    err |= pca9685_bus_write(pca9685, PCA9685_REG_ADDRESS_SUBADR1, &data, sizeof(data));
 
     return err;
 }
@@ -282,11 +260,11 @@ pca9685_err_t pca9685_get_subadr2_reg(pca9685_t const* pca9685, pca9685_subadr2_
 {
     assert(pca9685 && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
-    pca9685_err_t err = pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_SUBADR2, data, sizeof(data));
+    pca9685_err_t err = pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_SUBADR2, &data, sizeof(data));
 
-    reg->a2 = (data[0] >> 1U) & 0x0EFU;
+    reg->a2 = (data >> 1U) & 0x0EFU;
 
     return err;
 }
@@ -295,15 +273,15 @@ pca9685_err_t pca9685_set_subadr2_reg(pca9685_t const* pca9685, pca9685_subadr2_
 {
     assert(pca9685 && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
-    pca9685_err_t err = pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_SUBADR2, data, sizeof(data));
+    pca9685_err_t err = pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_SUBADR2, &data, sizeof(data));
 
-    data[0] &= ~(0xEFU << 1U);
+    data &= ~(0xEFU << 1U);
 
-    data[0] |= (reg->a2 & 0x0EFU) << 1U;
+    data |= (reg->a2 & 0x0EFU) << 1U;
 
-    err |= pca9685_bus_write(pca9685, PCA9685_REG_ADDRESS_SUBADR2, data, sizeof(data));
+    err |= pca9685_bus_write(pca9685, PCA9685_REG_ADDRESS_SUBADR2, &data, sizeof(data));
 
     return err;
 }
@@ -312,11 +290,11 @@ pca9685_err_t pca9685_get_subadr3_reg(pca9685_t const* pca9685, pca9685_subadr3_
 {
     assert(pca9685 && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
-    pca9685_err_t err = pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_SUBADR3, data, sizeof(data));
+    pca9685_err_t err = pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_SUBADR3, &data, sizeof(data));
 
-    reg->a3 = (data[0] >> 1U) & 0x0EFU;
+    reg->a3 = (data >> 1U) & 0x0EFU;
 
     return err;
 }
@@ -325,15 +303,15 @@ pca9685_err_t pca9685_set_subadr3_reg(pca9685_t const* pca9685, pca9685_subadr3_
 {
     assert(pca9685 && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
-    pca9685_err_t err = pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_SUBADR3, data, sizeof(data));
+    pca9685_err_t err = pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_SUBADR3, &data, sizeof(data));
 
-    data[0] &= ~(0xEFU << 1U);
+    data &= ~(0xEFU << 1U);
 
-    data[0] |= (reg->a3 & 0x0EFU) << 1U;
+    data |= (reg->a3 & 0x0EFU) << 1U;
 
-    err |= pca9685_bus_write(pca9685, PCA9685_REG_ADDRESS_SUBADR3, data, sizeof(data));
+    err |= pca9685_bus_write(pca9685, PCA9685_REG_ADDRESS_SUBADR3, &data, sizeof(data));
 
     return err;
 }
@@ -342,12 +320,12 @@ pca9685_err_t pca9685_get_allcalladr_reg(pca9685_t const* pca9685, pca9685_allca
 {
     assert(pca9685 && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
     pca9685_err_t err =
-        pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_ALLCALLADR, data, sizeof(data));
+        pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_ALLCALLADR, &data, sizeof(data));
 
-    reg->ac = (data[0] >> 1U) & 0xEFU;
+    reg->ac = (data >> 1U) & 0xEFU;
 
     return err;
 }
@@ -357,16 +335,16 @@ pca9685_err_t pca9685_set_allcalladr_reg(pca9685_t const* pca9685,
 {
     assert(pca9685 && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
     pca9685_err_t err =
-        pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_ALLCALLADR, data, sizeof(data));
+        pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_ALLCALLADR, &data, sizeof(data));
 
-    data[0] &= ~(0xEFU << 1U);
+    data &= ~(0xEFU << 1U);
 
-    data[0] |= (reg->ac & 0xEFU) << 1U;
+    data |= (reg->ac & 0xEFU) << 1U;
 
-    err |= pca9685_bus_write(pca9685, PCA9685_REG_ADDRESS_ALLCALLADR, data, sizeof(data));
+    err |= pca9685_bus_write(pca9685, PCA9685_REG_ADDRESS_ALLCALLADR, &data, sizeof(data));
 
     return err;
 }
@@ -541,12 +519,12 @@ pca9685_err_t pca9685_get_pre_scale_reg(pca9685_t const* pca9685, pca9685_pre_sc
 {
     assert(pca9685 && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
     pca9685_err_t err =
-        pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_PRE_SCALE, data, sizeof(data));
+        pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_PRE_SCALE, &data, sizeof(data));
 
-    reg->pre_scale = data[0] & 0xFFU;
+    reg->pre_scale = data & 0xFFU;
 
     return err;
 }
@@ -556,23 +534,23 @@ pca9685_err_t pca9685_set_pre_scale_reg(pca9685_t const* pca9685,
 {
     assert(pca9685 && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
-    data[0] = reg->pre_scale & 0xFFU;
+    data = reg->pre_scale & 0xFFU;
 
-    return pca9685_bus_write(pca9685, PCA9685_REG_ADDRESS_PRE_SCALE, data, sizeof(data));
+    return pca9685_bus_write(pca9685, PCA9685_REG_ADDRESS_PRE_SCALE, &data, sizeof(data));
 }
 
 pca9685_err_t pca9685_get_test_mode_reg(pca9685_t const* pca9685, pca9685_test_mode_reg_t* reg)
 {
     assert(pca9685 && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
     pca9685_err_t err =
-        pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_TEST_MODE, data, sizeof(data));
+        pca9685_bus_read(pca9685, PCA9685_REG_ADDRESS_TEST_MODE, &data, sizeof(data));
 
-    reg->mode = data[0] & 0xFFU;
+    reg->mode = data & 0xFFU;
 
     return err;
 }
@@ -582,9 +560,9 @@ pca9685_err_t pca9685_set_test_mode_reg(pca9685_t const* pca9685,
 {
     assert(pca9685 && reg);
 
-    uint8_t data[1] = {};
+    uint8_t data = {};
 
-    data[0] = reg->mode & 0xFFU;
+    data = reg->mode & 0xFFU;
 
-    return pca9685_bus_write(pca9685, PCA9685_REG_ADDRESS_TEST_MODE, data, sizeof(data));
+    return pca9685_bus_write(pca9685, PCA9685_REG_ADDRESS_TEST_MODE, &data, sizeof(data));
 }
